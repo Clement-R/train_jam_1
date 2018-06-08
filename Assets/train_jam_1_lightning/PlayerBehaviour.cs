@@ -8,6 +8,7 @@ public class PlayerBehaviour : MonoBehaviour {
     public Gradient baseColor;
     public Gradient actionColor;
 
+    public GameObject towerPrefab;
     public GameObject lightning;
 
     private bool _canFire = true;
@@ -23,13 +24,18 @@ public class PlayerBehaviour : MonoBehaviour {
         //_line.textureMode = LineTextureMode.Tile;
         //_line.material.SetTextureScale("_MainTex", new Vector2(10f, 1.0f));
     }
-	
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(1))
+        {
+            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Instantiate(towerPrefab, new Vector2(mousePos.x, mousePos.y), Quaternion.identity);
+        }
+    }
+
     private void OnMouseDown()
     {
-        if(_canFire)
-        {
-            // TOOD : draw line
-        }
     }
 
     private void OnMouseUp()
@@ -39,8 +45,6 @@ public class PlayerBehaviour : MonoBehaviour {
             _canFire = false;
 
             StartCoroutine(Fire());
-
-            // TODO : Fire
         }
     }
 

@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LightningBehaviour : MonoBehaviour {
+public class LightningBehaviour : MonoBehaviour
+{
 
+    public int maxHit = 3;
+    
     private LineRenderer _line;
+    private int _nbOfHits = 0;
 
 	void Awake () {
         _line = GetComponent<LineRenderer>();
@@ -30,8 +34,7 @@ public class LightningBehaviour : MonoBehaviour {
 
     private IEnumerator CastNextLightning(GameObject enemy)
     {
-        Debug.Log("FIRE");
-        Debug.Log("Target : " + enemy.name);
+        Debug.Log("FIRE to target : " + enemy.name);
 
         Collider2D[] colliders = Physics2D.OverlapCircleAll(enemy.transform.position, 500f);
 
@@ -39,7 +42,7 @@ public class LightningBehaviour : MonoBehaviour {
         float distance = 9999f;
         foreach (var collider in colliders)
         {
-            if(collider.CompareTag("Enemy") && collider.gameObject != enemy.gameObject)
+            if((collider.CompareTag("Enemy") || collider.CompareTag("Tower")) && collider.gameObject != enemy.gameObject)
             {
                 float dist = Vector2.Distance(collider.gameObject.transform.position, enemy.transform.position);
                 if (dist <= distance)
@@ -52,9 +55,10 @@ public class LightningBehaviour : MonoBehaviour {
 
         // TODO : Change for kill behaviour
         ResetLine(enemy.transform.position);
-        Destroy(enemy.gameObject);
-
-        if(nearest != null)
+        ((IShootable) enemy.GetComponent(typeof(IShootable))).OnGettingShot();
+        _nbOfHits++;
+        
+        if(nearest != null && _nbOfHits <= maxHit)
         {
             Debug.Log("FIRE NEXT ONE");
             Debug.Log("Nearest : " + nearest.name);
@@ -65,6 +69,10 @@ public class LightningBehaviour : MonoBehaviour {
             yield return new WaitForSeconds(0.15f);
 
             StartCoroutine(CastNextLightning(nearest.transform.gameObject));
+        }
+        else
+        {
+            _nbOfHits = 0;
         }
 
         yield return null;
@@ -87,7 +95,7 @@ public class LightningBehaviour : MonoBehaviour {
             bool hasHit = false;
             foreach (var hit in hits)
             {
-                if(hit.transform.CompareTag("Enemy"))
+                if(hit.transform.CompareTag("Enemy") || hit.transform.CompareTag("Tower"))
                 {
                     hasHit = true;
                     StartCoroutine(CastNextLightning(hit.transform.gameObject));
